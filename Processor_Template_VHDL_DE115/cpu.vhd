@@ -346,6 +346,7 @@ begin
 				selM2 := sMeM; 		-- M2 <- MEM	
 				LoadReg(RX) := '1';	-- LRx <- 1	
 				IncPC := '1';  		-- IncPC <- 1	
+				
 				state := fetch;
 			END IF;		
 
@@ -440,7 +441,23 @@ begin
 -- ARITH OPERATION ('INC' NOT INCLUDED) 			RX <- RY (?) RZ
 --========================================================================
 			IF(IR(15 DOWNTO 14) = ARITH AND IR(13 DOWNTO 10) /= INC) THEN
+			
+				M3 := Reg(RY);
+				M4 := Reg(RZ);
 				
+				x <= M3;
+				y <= M4;
+				
+				OP(5 downto 0) <= IR(15 downto 10);
+				OP(6) <= IR(0);
+				
+				selM2 := sULA;
+				
+				loadReg(RX) := '1';
+				
+				selM6 := sULA;
+				loadFR := '1';
+			
 				state := fetch;
 			END IF;
 			
@@ -448,6 +465,28 @@ begin
 -- INC/DEC			RX <- RX (+ or -) 1
 --========================================================================			
 			IF(IR(15 DOWNTO 14) = ARITH AND (IR(13 DOWNTO 10) = INC))	THEN
+			
+				M3 := Reg(RY);
+				M4 := "0000000000000001";
+				
+				x <= M3;
+				y <= M4;
+				
+				OP(5 downto 4) <= ARITH;
+				OP(6) <= '0';
+				
+				IF(IR(6) = '0') THEN
+					OP(3 downto 0) <= ADD;
+				ELSE	
+					OP(3 downto 0) <= SUB;
+				END IF;
+				
+				selM2 := sULA;
+				
+				loadReg(RX) := '1';
+				
+				selM6 := sULA;
+				loadFR := '1';
 				
 				state := fetch;
 			END IF;
@@ -455,7 +494,23 @@ begin
 --========================================================================
 -- LOGIC OPERATION ('SHIFT', and 'CMP'  NOT INCLUDED)  			RX <- RY (?) RZ
 --========================================================================		
-			IF(IR(15 DOWNTO 14) = LOGIC AND IR(13 DOWNTO 10) /= SHIFT AND IR(13 DOWNTO 10) /= CMP) THEN 
+			IF(IR(15 DOWNTO 14) = LOGIC AND IR(13 DOWNTO 10) /= SHIFT AND IR(13 DOWNTO 10) /= CMP) THEN
+			
+				M3 := Reg(RY);
+				M4 := Reg(RZ);
+				
+				x <= M3;
+				y <= M4;
+				
+				OP(5 downto 0) <= IR(15 downto 10);
+				OP(6) <= IR(0);
+				
+				selM2 := sULA;
+				
+				loadReg(RX) := '1';
+				
+				selM6 := sULA;
+				loadFR := '1';
 				
 				state := fetch;
 			END IF;			
@@ -487,6 +542,18 @@ begin
 -- CMP		RX, RY
 --========================================================================		
 			IF(IR(15 DOWNTO 14) = LOGIC AND IR(13 DOWNTO 10) = CMP) THEN 
+			
+				M3 := Reg(RX);
+				M4 := Reg(RY);
+				
+				x <= M3;
+				y <= M4;
+				
+				OP(5 downto 0) <= IR(15 downto 10);
+				OP(6) <= '0';
+				
+				selM6 := sULA;
+				loadFR := '1';
 				
 				state := fetch;
 			END IF;
@@ -529,6 +596,36 @@ begin
 -- JMP Condition: (UNconditional, EQual, Not Equal, Zero, Not Zero, CarRY, Not CarRY, GReater, LEsser, Equal or Greater, Equal or Lesser, OVerflow, Not OVerflow, Negative, DIVbyZero, NOT USED)	
 --========================================================================
 			IF(IR(15 DOWNTO 10) = CALL) THEN 
+				IF((IR(9 DOWNTO 6) = "0000") OR
+				((IR(9 DOWNTO 6) = "0111") AND FR(0) = '1') OR
+				((IR(9 DOWNTO 6) = "1001") AND (FR(2) = '1' OR FR(0) = '1')) OR
+				((IR(9 DOWNTO 6) = "1000") AND FR(1) = '1') OR
+				((IR(9 DOWNTO 6) = "1010") AND (FR(2) = '1' OR FR(1) = '1')) OR
+				((IR(9 DOWNTO 6) = "0001") AND FR(2) = '1') OR
+				((IR(9 DOWNTO 6) = "0010") AND FR(2) = '0') OR
+				((IR(9 DOWNTO 6) = "0011") AND FR(3) = '1') OR
+				((IR(9 DOWNTO 6) = "0100") AND FR(3) = '0') OR
+				((IR(9 DOWNTO 6) = "0101") AND FR(4) = '1') OR
+				((IR(9 DOWNTO 6) = "0110") AND FR(4) = '0') OR
+				((IR(9 DOWNTO 6) = "1011") AND FR(5) = '1') OR
+				((IR(9 DOWNTO 6) = "1100") AND FR(5) = '0') OR
+				((IR(9 DOWNTO 6) = "1101") AND FR(6) = '1') OR
+				((IR(9 DOWNTO 6) = "1110") AND FR(9) = '1')) THEN
+				
+					-- Salva o PC, empilhando ele
+					M1  <= SP;
+					RW <= '1';
+					M5 <= PC;
+					
+					DecSP := '1'; -- Decrementa o SP depois de empilhar
+					-- Ver depois se isso nao da problema, porque ele vai decrementar mas precisa ja ter empilhado antes
+					
+					state := exec;
+									
+				ELSE
+					IncPC := '1';
+					state := fetch;
+				END IF;
 				
 			END IF;
 
@@ -544,6 +641,19 @@ begin
 -- PUSH RX
 --========================================================================		
 			IF(IR(15 DOWNTO 10) = PUSH) THEN
+
+			IF(IR(6) - '0') THEN
+				M3 : <= reg(rx);
+			ELSE
+				M3 := FR;
+				
+			END IF;
+			
+			M5 <= M3;
+			RW <= '1';
+			M1 <= sp;
+			
+			DecSP := '1';
 				
 				state := fetch;
 			END IF;
@@ -552,6 +662,8 @@ begin
 -- POP RX
 --========================================================================
 			IF(IR(15 DOWNTO 10) = POP) THEN
+			
+				IncSP := '1';
 				
 				state := exec;
 			END IF;						
@@ -636,6 +748,10 @@ begin
 -- EXEC CALL    Pilha <- PC e PC <- 16bit END :
 --========================================================================
 			IF(IR(15 DOWNTO 10) = CALL) THEN
+			
+				M1 <= PC;				-- M1 <- PC
+				Rw <= '0';				-- Rw <= '0'
+				LoadPC := '1';			-- LoadPC <- 1
 				
 				state := fetch;
 			END IF;
@@ -644,6 +760,11 @@ begin
 -- EXEC RTS 			PC <- Mem[SP]
 --========================================================================
 			IF(IR(15 DOWNTO 10) = RTS) THEN
+			
+				IncSP := '1';
+				M1 <= SP;
+				RW <= '0';
+				LoadPC := '1';
 				
 				state := exec2;
 			END IF;
@@ -652,6 +773,17 @@ begin
 -- EXEC POP RX/FR
 --========================================================================
 			IF(IR(15 DOWNTO 10) = POP) THEN
+			
+				M1 <= SP;
+				RW <= '0';
+				
+				IF(IR(6) = '0') THEN
+					SelM2 := sMEM;
+					LoadReg(rx) := '1';
+				ELSE
+					SelM2 := sMEM;
+					LoadReg(rx) := '1';
+				END IF;
 				
 				state := fetch;
 			END IF;		
@@ -668,6 +800,8 @@ begin
 -- EXEC2 RTS 			PC <- Mem[SP]
 --========================================================================
 			IF(IR(15 DOWNTO 10) = RTS) THEN
+			
+				IncPC := '1';
 				
 				state := fetch;
 			END IF;				
