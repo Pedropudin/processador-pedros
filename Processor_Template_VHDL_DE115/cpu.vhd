@@ -371,6 +371,10 @@ begin
 --========================================================================			
 			IF(IR(15 DOWNTO 10) = STORE) THEN  -- Busca o endereco
 		
+				M1 <= PC;
+				RW <= '0';
+				LoadMar := '1';
+				IncPC := '1';   -- Advance past the address word
 				state := exec;  -- Vai para o estado de Executa para gravar Registrador no endereco
 			END IF;					
 
@@ -378,9 +382,9 @@ begin
 -- LOAD Indexado por registrador 			RX <- M(RY)
 --========================================================================		
 			IF(IR(15 DOWNTO 10) = LOADINDEX) THEN
-				M4 := REG(RY)
+				M4 := REG(RY);
 				M1 <= M4;
-				RW := '0';
+				RW <= '0';
 				
 				selM2 := sMEM;
 				LoadREG(RX) := '1';
@@ -397,7 +401,7 @@ begin
 				-- RW <= '0';
 				-- LoadMAR := '1'
 				
-				M4 := REG(Rx)
+				M4 := REG(Rx);
 				M1 <= M4;
 				RW := '1';
 				
@@ -406,7 +410,7 @@ begin
 				
 				-- Isso deve estar errado tambem
 				-- IncPC := '1';
-				-- state := fetch;
+				state := fetch;
 			END IF;					
 		
 
@@ -642,8 +646,8 @@ begin
 --========================================================================		
 			IF(IR(15 DOWNTO 10) = PUSH) THEN
 
-			IF(IR(6) - '0') THEN
-				M3 : <= reg(rx);
+			IF(IR(6) = '0') THEN
+				M3 := reg(rx);
 			ELSE
 				M3 := FR;
 				
@@ -725,11 +729,10 @@ begin
 --========================================================================
 			IF(IR(15 DOWNTO 10) = LOAD) THEN
 
-                M1 <= MAR;
-                RW <= '0';
-                LoadMAR := '1';
-                IncPC := '1';
-				
+				M1 <= MAR;
+				RW <= '0';
+				selM2 := sMem;
+				LoadReg(RX) := '1';
 				state := fetch;
 			END IF;
 							
@@ -739,7 +742,7 @@ begin
 			IF(IR(15 DOWNTO 10) = STORE) THEN 
 				M1 <= MAR;
 				RW <= '1';
-				LoadMar := '1';
+				M5 <= Reg(RX);   -- Actually send the data to be written
 				state := fetch;
 			END IF;
 						
@@ -781,8 +784,8 @@ begin
 					SelM2 := sMEM;
 					LoadReg(rx) := '1';
 				ELSE
-					SelM2 := sMEM;
-					LoadReg(rx) := '1';
+					SelM6 := sMEM;
+					LoadFR := '1';
 				END IF;
 				
 				state := fetch;
