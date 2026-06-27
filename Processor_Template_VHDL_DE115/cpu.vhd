@@ -359,7 +359,8 @@ begin
                 M1 <= PC;
                 RW <= '0';
                 LoadMar := '1';
-
+					 
+					 IncPC := '1';
 
 				state := exec;  -- Vai para o estado de Executa para buscar o dado do endereco
 			END IF;			
@@ -470,19 +471,21 @@ begin
 --========================================================================			
 			IF(IR(15 DOWNTO 14) = ARITH AND (IR(13 DOWNTO 10) = INC))	THEN
 			
-				M3 := Reg(RY);
+				M3 := Reg(RX);
 				M4 := "0000000000000001";
 				
 				x <= M3;
 				y <= M4;
 				
-				OP(5 downto 4) <= ARITH;
-				OP(6) <= '0';
+				-- OP(5 downto 4) <= ARITH;
+				-- OP(6) <= '0';
 				
 				IF(IR(6) = '0') THEN
-					OP(3 downto 0) <= ADD;
+					-- OP (3 downto 0) <= ADD;
+					OP <= '0' & ARITH & "00" & ADD;  -- bit 6=0, bits5:4=ARITH, bits3:0=ADD  => "0100000"
 				ELSE	
-					OP(3 downto 0) <= SUB;
+					-- OP(3 downto 0) <= SUB;
+					OP <= '0' & ARITH & "00" & SUB;  -- => "0100001"
 				END IF;
 				
 				selM2 := sULA;
