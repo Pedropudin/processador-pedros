@@ -403,7 +403,7 @@ begin
 				
 				M4 := REG(Rx);
 				M1 <= M4;
-				RW := '1';
+				RW <= '1';
 				
 				M3 := REG(RY);
 				M5 <= M3;
