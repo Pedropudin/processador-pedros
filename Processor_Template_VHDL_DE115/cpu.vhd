@@ -482,10 +482,10 @@ begin
 				
 				IF(IR(6) = '0') THEN
 					-- OP (3 downto 0) <= ADD;
-					OP <= '0' & ARITH & "00" & ADD;  -- bit 6=0, bits5:4=ARITH, bits3:0=ADD  => "0100000"
+					OP <= '0' & ARITH & ADD;  -- bit 6=0, bits5:4=ARITH, bits3:0=ADD  => "0100000"
 				ELSE	
 					-- OP(3 downto 0) <= SUB;
-					OP <= '0' & ARITH & "00" & SUB;  -- => "0100001"
+					OP <= '0' & ARITH & SUB;  -- => "0100001"
 				END IF;
 				
 				selM2 := sULA;
