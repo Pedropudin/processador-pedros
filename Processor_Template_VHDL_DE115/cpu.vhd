@@ -734,7 +734,7 @@ begin
 
 				M1 <= MAR;
 				RW <= '0';
-				selM2 := sMem;
+				selM2 := sMeM;
 				LoadReg(RX) := '1';
 				state := fetch;
 			END IF;
